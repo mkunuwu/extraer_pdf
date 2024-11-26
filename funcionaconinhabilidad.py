@@ -76,5 +76,5 @@ def separar_paginas_con_rut(pdf_path):
             print(f"No se encontró RUT en la página {i+1} ni con OCR.")
 
 
-pdf_path = r"sueldos.pdf" 
+pdf_path = r"inhabilidad.pdf" 
 separar_paginas_con_rut(pdf_path)
