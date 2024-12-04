@@ -33,6 +33,7 @@ from tkinter import filedialog, messagebox
 import os
 import shutil
 from funcionaconsueldos import separar_sueldos  
+from funcionaconinhabilidad import separar_inhabilidades
 
 output_dir = None  
 
@@ -44,40 +45,54 @@ def seleccionar_archivo():
     
     if archivo:  
         etiqueta_archivo.config(text=f"Archivo seleccionado: {archivo}")
-        procesar_pdf(archivo)
+        procesar_pdf(archivo)  
     else:
         etiqueta_archivo.config(text="No se seleccionó ningún archivo")
 
 def procesar_pdf(archivo):
+    global output_dir  
+    
     tipo_documento = tipo_documento_var.get()
     
     if tipo_documento == "Seleccionar tipo":
-        messagebox.showerror("Error", "selecciona el tipo de documento (Sueldos o Inhabilidad)")
+        messagebox.showerror("Error", "Selecciona el tipo de documento (Sueldos o Inhabilidad)")
         return
     
     if tipo_documento == "Sueldos":
         if separar_sueldos: 
             try:
-                global output_dir
                 output_dir = os.path.join(os.getcwd(), "output_pdfs")  
                 os.makedirs(output_dir, exist_ok=True)  
 
                 separar_sueldos(archivo, output_dir)
                 
-                messagebox.showinfo("Éxito", f"El PDF fue procesado correctamente.{output_dir}.")
+                messagebox.showinfo("Éxito", f"El PDF fue procesado correctamente.\n{output_dir}.")
                 boton_descargar.config(state=tk.NORMAL)  
                 etiqueta_archivo.config(text=f"PDF procesado: {archivo}")
             except Exception as e:
-                messagebox.showerror("Error", f"No se pudo procesar el archivo de sueldos: {e}")
+                messagebox.showerror("Error", f"No se pudo procesar el archivo: {e}")
         else:
             messagebox.showerror("Error", "No se pudo importar la función para procesar sueldos.")
     
     elif tipo_documento == "Inhabilidad":
-        messagebox.showinfo("Información", "Funcionalidad de inhabilidad aún no implementada.")
+        if separar_inhabilidades:
+            try:
+                output_dir = os.path.join(os.getcwd(), "output_pdfs")
+                os.makedirs(output_dir, exist_ok=True)
+
+                separar_inhabilidades(archivo, output_dir)
+
+                messagebox.showinfo("Éxito", f"El PDF fue procesado correctamente.\n{output_dir}.")
+                boton_descargar.config(state=tk.NORMAL)  
+                etiqueta_archivo.config(text=f"PDF procesado: {archivo}")
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo procesar el archivo: {e}")
+        else:
+            messagebox.showerror("Error", "No se pudo importar la función para procesar inhabilidades.")
 
 def descargar_carpeta():
     if output_dir:
-        carpeta_destino = filedialog.askdirectory(title="Seleccionar ubicación para guardar la carpeta con los pdf")
+        carpeta_destino = filedialog.askdirectory(title="Seleccionar ubicación para guardar la carpeta con los PDFs")
         if carpeta_destino:
             try:
                 destino_completo = os.path.join(carpeta_destino, "output_pdfs")
