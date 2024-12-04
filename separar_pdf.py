@@ -23,12 +23,13 @@ La app de escritorio
 
 al abrir la app se vera el nombre procesador de pdf, abajo estara una seleccion de opciones, para selecionar el tipo de documento
 y debajo de esto estara el boton de seleccionar archivo, ahi se seleccionara el pdf o los pdf que necesite procesar, 
-segun el tipo de archivo que se seleccione se usara funcion_cer.py o funcion_sueldos.py para procesar el pdf, 
+segun el tipo de archivo que se seleccione se usara funcionaconinhabilidad.py o funcionconsueldos.py para procesar el pdf, 
 al finalizar el proceso se creara una carpeta con los pdf, esta carpeta se descargara y elegira la ubicacion donde se desea guardar
 si se procesa bien el pdf saldra un mensaje que diga "se proceso correctamente" y en caso de algun error dira"no se pudo procesar el pdf"
 """
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
+
 
 def seleccionar_archivo():
     archivo = filedialog.askopenfilename(
@@ -41,9 +42,36 @@ def seleccionar_archivo():
     else:
         etiqueta_archivo.config(text="No se seleccionó ningún archivo")
 
+def descargar_carpeta():
+    tipo_documento = tipo_documento_var.get()
+    archivo = etiqueta_archivo.cget("text")
+    
+    if archivo == "No se ha seleccionado ningún archivo":
+        messagebox.showerror("Error", "Debe seleccionar un archivo PDF")
+        return
+    
+    if tipo_documento == "Seleccionar tipo":
+        messagebox.showerror("Error", "Debe seleccionar el tipo de documento (Sueldos o Inhabilidad)")
+        return
+    
+    carpeta_destino = filedialog.askdirectory(title="Seleccionar carpeta de destino")
+    
+    if carpeta_destino:
+        messagebox.showinfo("Éxito", f"El PDF se ha procesado correctamente. Los archivos se han guardado en {carpeta_destino}.")
+    else:
+        messagebox.showerror("Error", "No se seleccionó una carpeta para guardar el archivo")
+
 root = tk.Tk()
-root.title("Seleccionador de Archivos PDF")  
-root.geometry("400x200") 
+root.title("Procesador de PDF")  
+root.geometry("500x300") 
+
+tipo_documento_var = tk.StringVar(value="Seleccionar tipo")
+etiqueta_tipo_documento = tk.Label(root, text="Seleccionar tipo de documento:")
+etiqueta_tipo_documento.pack(pady=5)
+
+opciones_tipo_documento = ["Seleccionar tipo", "Sueldos", "Inhabilidad"]
+menu_tipo_documento = tk.OptionMenu(root, tipo_documento_var, *opciones_tipo_documento)
+menu_tipo_documento.pack(pady=5)
 
 boton_seleccionar = tk.Button(
     root, 
@@ -56,5 +84,15 @@ boton_seleccionar.pack(pady=20)
 
 etiqueta_archivo = tk.Label(root, text="No se ha seleccionado ningún archivo", wraplength=350)
 etiqueta_archivo.pack(pady=10)
+
+
+boton_descargar = tk.Button(
+    root,
+    text="Descargar carpeta",
+    command=descargar_carpeta,
+    width=30,
+    height=2
+)
+boton_descargar.pack(pady=20)
 
 root.mainloop()
