@@ -21,10 +21,10 @@ def buscar_rut(texto):
     print(f"Texto para buscar RUT: {texto}")
     match = re.search(r'\b(RUN|RUT)[\s:]*([\d]{7,8})-?([0-9Kk])\b', texto)
     if match:
-        return f"{match.group(2)}-{match.group(3)}"
+        rut_base = f"{match.group(2)}-{match.group(3)}"
+        rut_modificado = f"{match.group(2)}-cer"
+        return rut_modificado
     return None
-
-
 
 def limpiar_texto(texto):
     texto_limpio = normalizar_texto(texto)

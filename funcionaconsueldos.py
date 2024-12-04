@@ -1,10 +1,4 @@
-# una app que a los pdf lo sepáre por paginas, cada pdf que separe llevara el nombre del rut, tendra dos opciones para el nombre,segun el tipo de archivo, si es un certificado, el nombre del pdf sera el rut del cliente sin digito verificador, sino que dira cer, ejemplo, xx.xxx.xxx-cer, si es un sueldo el nombre del pdf sera xx.xxx.xxx, el pdf que hay que separar contiene en cada pagina datos de un cliente y en vez de que sea todos los clientes en un pdf hay que hacer un pdf por cliente, asi cada hoja el pdf se tiene que hacer un pdf pip install PyPDF2
-# 1. separar las paginas del pdf y hacer un pdf por paginas
-# 2. que el nombre de cada pdf sea el rut 
-# 3- empesar app
-# 4. opcion de cambiar el nombre del pdf a xx.xxx.xxx-cer o xx.xxx.xxx-x
-## verificari si el rut tiene puntos, ti tiene puntos se quitan
-## agregar el selector de archivos
+
 import os
 import re
 import fitz  # PyMuPDF
