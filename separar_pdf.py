@@ -4,18 +4,20 @@
 # 2.1 funciona en diferentes archivos pero por separado, hay que hacerlo en un solo archivo py 
 # 3- empesar app
 # 4 detalles
-# 4.1. opcion de cambiar el nombre del pdf a xx.xxx.xxx-cer o xx.xxx.xxx-x
+# 4.1. opcion de elegir el tipo de archivo, si es sueldos o inhabilidad 
 # 4.2 selector de archivos
-# 4.3 añadir opcion para el nombre, que termine en cer o con el digito verificador
-## verificari si el rut tiene puntos, ti tiene puntos se quitan
-## agregar el selector de archivos
-#agregar 2 opciones para los tipo de documento, certificado o sueldo,
-# si es certificado se debe guardar el nombre xx.xxx.xxx-cer y si es sueldo se va a guardar xx.xxx.xxx-x
-# la app tendra 3 scripts 1 separar_pdf.py que sera el archivo principal, contara con la interfaz, la logica es que aqui el usuario marcara
-# del tipo de documento y seleccionara los archivos.
+# 4.3 añadir opcion para el nombre, que termine en cer si es inhabilidad o con el digito verificador si es sueldo listo
+# 5 empezar interfaz de usuario
+# 5.1 agregar selector de archivos en interfaz listo
+# 5.2 agregar seleccion de tipo de archivo
+#  verificari si el rut tiene puntos, ti tiene puntos se quitan listo
+#  agregar el selector de archivos LISTO
+# la app tendra 3 scripts 1 separar_pdf.py que sera el archivo principal, contara con la interfaz, 
+# la logica es que aqui el usuario marcara
+# el tipo de documento y seleccionara los archivos.
 #el segundo scrirpt es funcion_cer.py que su logica es para los certificados de inhabilidad
 # el tecer script es funcion_sueldo.py que servira para los sueldos
-
+#e
 """
 La app de escritorio
 
@@ -25,69 +27,34 @@ segun el tipo de archivo que se seleccione se usara funcion_cer.py o funcion_sue
 al finalizar el proceso se creara una carpeta con los pdf, esta carpeta se descargara y elegira la ubicacion donde se desea guardar
 si se procesa bien el pdf saldra un mensaje que diga "se proceso correctamente" y en caso de algun error dira"no se pudo procesar el pdf"
 """
-import os
-import re
-import fitz  # PyMuPDF
-import pytesseract
-from PIL import Image
+import tkinter as tk
+from tkinter import filedialog
 
-
-pytesseract.pytesseract.tesseract_cmd = r'Tesseract-OCR\tesseract.exe'  
-
-def extraer_texto_ocr(imagen):
-    texto_ocr = pytesseract.image_to_string(imagen)
-    return texto_ocr
-
-def buscar_rut(texto):
-    match = re.search(r'(?<=Rut[:\s])(\d{7,8}-[Kk0-9])', texto)
-    if match:
-        return match.group(1)
-    return None
-
-def separar_paginas_con_rut(pdf_path):
-    documento = fitz.open(pdf_path)
-    nombre_archivo = os.path.splitext(os.path.basename(pdf_path))[0]
+def seleccionar_archivo():
+    archivo = filedialog.askopenfilename(
+        title="Seleccionar archivo PDF", 
+        filetypes=[("Archivos PDF", "*.pdf")]
+    )
     
-    output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output_pdfs")
-    os.makedirs(output_dir, exist_ok=True)
+    if archivo:  
+        etiqueta_archivo.config(text=f"Archivo seleccionado: {archivo}")
+    else:
+        etiqueta_archivo.config(text="No se seleccionó ningún archivo")
 
-    for i in range(len(documento)):
-        pagina = documento[i]
-        
-        texto = pagina.get_text("text")
-        texto_limpio = " ".join(texto.split())  
+root = tk.Tk()
+root.title("Seleccionador de Archivos PDF")  
+root.geometry("400x200") 
 
-        if texto_limpio:
-       
-            rut = buscar_rut(texto_limpio)
-            if rut:
-                print(f"RUT encontrado en la página {i+1} desde texto: {rut}")
-                nuevo_pdf = fitz.open()
-                nuevo_pdf.insert_pdf(documento, from_page=i, to_page=i)
-                output_pdf_path = os.path.join(output_dir, f"{rut}.pdf")
-                nuevo_pdf.save(output_pdf_path)
-                print(f"Se guardó el PDF con RUT {rut} en: {output_pdf_path}")
-                continue  
+boton_seleccionar = tk.Button(
+    root, 
+    text="Seleccionar archivo PDF", 
+    command=seleccionar_archivo, 
+    width=30, 
+    height=2
+)
+boton_seleccionar.pack(pady=20)
 
-        print(f"No se encontró RUT en la página {i+1} desde texto, usando OCR...")
+etiqueta_archivo = tk.Label(root, text="No se ha seleccionado ningún archivo", wraplength=350)
+etiqueta_archivo.pack(pady=10)
 
-        pix = pagina.get_pixmap(matrix=fitz.Matrix(2, 2))  
-        imagen = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-
-        texto_ocr = extraer_texto_ocr(imagen)
-        print(f"Texto OCR extraído de la página {i+1}: {texto_ocr}")
-
-        rut = buscar_rut(texto_ocr)
-        if rut:
-            print(f"RUT encontrado con OCR en la página {i+1}: {rut}")
-            nuevo_pdf = fitz.open()
-            nuevo_pdf.insert_pdf(documento, from_page=i, to_page=i)
-            output_pdf_path = os.path.join(output_dir, f"{rut}.pdf")
-            nuevo_pdf.save(output_pdf_path)
-            print(f"Se guardó el PDF con RUT {rut} en: {output_pdf_path}")
-        else:
-            print(f"No se encontró RUT en la página {i+1} ni con OCR.")
-
-
-pdf_path = r"sueldos.pdf" 
-separar_paginas_con_rut(pdf_path)
+root.mainloop()
