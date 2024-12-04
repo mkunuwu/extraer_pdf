@@ -9,7 +9,7 @@
 # 4.3 añadir opcion para el nombre, que termine en cer si es inhabilidad o con el digito verificador si es sueldo listo
 # 5 empezar interfaz de usuario
 # 5.1 agregar selector de archivos en interfaz listo
-# 5.2 agregar seleccion de tipo de archivo
+# 5.2 agregar seleccion de tipo de archivo 
 #  verificari si el rut tiene puntos, ti tiene puntos se quitan listo
 #  agregar el selector de archivos LISTO
 # la app tendra 3 scripts 1 separar_pdf.py que sera el archivo principal, contara con la interfaz, 
@@ -27,9 +27,14 @@ segun el tipo de archivo que se seleccione se usara funcionaconinhabilidad.py o 
 al finalizar el proceso se creara una carpeta con los pdf, esta carpeta se descargara y elegira la ubicacion donde se desea guardar
 si se procesa bien el pdf saldra un mensaje que diga "se proceso correctamente" y en caso de algun error dira"no se pudo procesar el pdf"
 """
+
 import tkinter as tk
 from tkinter import filedialog, messagebox
+import os
+import shutil
+from funcionaconsueldos import separar_sueldos  
 
+output_dir = None  
 
 def seleccionar_archivo():
     archivo = filedialog.askopenfilename(
@@ -39,27 +44,49 @@ def seleccionar_archivo():
     
     if archivo:  
         etiqueta_archivo.config(text=f"Archivo seleccionado: {archivo}")
+        procesar_pdf(archivo)
     else:
         etiqueta_archivo.config(text="No se seleccionó ningún archivo")
 
-def descargar_carpeta():
+def procesar_pdf(archivo):
     tipo_documento = tipo_documento_var.get()
-    archivo = etiqueta_archivo.cget("text")
-    
-    if archivo == "No se ha seleccionado ningún archivo":
-        messagebox.showerror("Error", "Debe seleccionar un archivo PDF")
-        return
     
     if tipo_documento == "Seleccionar tipo":
-        messagebox.showerror("Error", "Debe seleccionar el tipo de documento (Sueldos o Inhabilidad)")
+        messagebox.showerror("Error", "selecciona el tipo de documento (Sueldos o Inhabilidad)")
         return
     
-    carpeta_destino = filedialog.askdirectory(title="Seleccionar carpeta de destino")
+    if tipo_documento == "Sueldos":
+        if separar_sueldos: 
+            try:
+                global output_dir
+                output_dir = os.path.join(os.getcwd(), "output_pdfs")  
+                os.makedirs(output_dir, exist_ok=True)  
+
+                separar_sueldos(archivo, output_dir)
+                
+                messagebox.showinfo("Éxito", f"El PDF fue procesado correctamente.{output_dir}.")
+                boton_descargar.config(state=tk.NORMAL)  
+                etiqueta_archivo.config(text=f"PDF procesado: {archivo}")
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo procesar el archivo de sueldos: {e}")
+        else:
+            messagebox.showerror("Error", "No se pudo importar la función para procesar sueldos.")
     
-    if carpeta_destino:
-        messagebox.showinfo("Éxito", f"El PDF se ha procesado correctamente. Los archivos se han guardado en {carpeta_destino}.")
+    elif tipo_documento == "Inhabilidad":
+        messagebox.showinfo("Información", "Funcionalidad de inhabilidad aún no implementada.")
+
+def descargar_carpeta():
+    if output_dir:
+        carpeta_destino = filedialog.askdirectory(title="Seleccionar ubicación para guardar la carpeta con los pdf")
+        if carpeta_destino:
+            try:
+                destino_completo = os.path.join(carpeta_destino, "output_pdfs")
+                shutil.copytree(output_dir, destino_completo)  
+                messagebox.showinfo("Éxito", f"La carpeta se ha descargado en: {destino_completo}")
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo descargar la carpeta: {e}")
     else:
-        messagebox.showerror("Error", "No se seleccionó una carpeta para guardar el archivo")
+        messagebox.showerror("Error", "No se ha procesado ningún archivo aún.")
 
 root = tk.Tk()
 root.title("Procesador de PDF")  
@@ -73,6 +100,7 @@ opciones_tipo_documento = ["Seleccionar tipo", "Sueldos", "Inhabilidad"]
 menu_tipo_documento = tk.OptionMenu(root, tipo_documento_var, *opciones_tipo_documento)
 menu_tipo_documento.pack(pady=5)
 
+
 boton_seleccionar = tk.Button(
     root, 
     text="Seleccionar archivo PDF", 
@@ -81,6 +109,7 @@ boton_seleccionar = tk.Button(
     height=2
 )
 boton_seleccionar.pack(pady=20)
+
 
 etiqueta_archivo = tk.Label(root, text="No se ha seleccionado ningún archivo", wraplength=350)
 etiqueta_archivo.pack(pady=10)
@@ -91,7 +120,8 @@ boton_descargar = tk.Button(
     text="Descargar carpeta",
     command=descargar_carpeta,
     width=30,
-    height=2
+    height=2,
+    state=tk.DISABLED  
 )
 boton_descargar.pack(pady=20)
 

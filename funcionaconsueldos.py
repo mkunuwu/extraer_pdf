@@ -1,10 +1,8 @@
-
 import os
 import re
 import fitz  # PyMuPDF
 import pytesseract
 from PIL import Image
-
 
 pytesseract.pytesseract.tesseract_cmd = r'Tesseract-OCR\tesseract.exe' 
 
@@ -18,11 +16,9 @@ def buscar_rut(texto):
         return match.group(1)
     return None
 
-def separar_paginas_con_rut(pdf_path):
+def separar_sueldos(pdf_path, output_dir):
     documento = fitz.open(pdf_path)
-    nombre_archivo = os.path.splitext(os.path.basename(pdf_path))[0]
     
-    output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output_pdfs")
     os.makedirs(output_dir, exist_ok=True)
 
     for i in range(len(documento)):
@@ -32,7 +28,6 @@ def separar_paginas_con_rut(pdf_path):
         texto_limpio = " ".join(texto.split()) 
 
         if texto_limpio:
-
             rut = buscar_rut(texto_limpio)
             if rut:
                 print(f"RUT encontrado en la página {i+1} desde texto: {rut}")
@@ -43,9 +38,9 @@ def separar_paginas_con_rut(pdf_path):
                 print(f"Se guardó el PDF con RUT {rut} en: {output_pdf_path}")
                 continue  
 
-        print(f"No se encontró RUT en la página {i+1} desde texto, usando OCR...")
+        print(f"No se encontró RUT en la página {i+1} desde texto, usando OCR")
 
-        pix = pagina.get_pixmap(matrix=fitz.Matrix(2, 2))  
+        pix = pagina.get_pixmap(matrix=fitz.Matrix(2, 2)) 
         imagen = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
 
         texto_ocr = extraer_texto_ocr(imagen)
@@ -61,6 +56,6 @@ def separar_paginas_con_rut(pdf_path):
             print(f"Se guardó el PDF con RUT {rut} en: {output_pdf_path}")
         else:
             print(f"No se encontró RUT en la página {i+1} ni con OCR.")
+    
+    return output_dir
 
-pdf_path = r"sueldos.pdf" 
-separar_paginas_con_rut(pdf_path)
