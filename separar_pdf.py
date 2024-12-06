@@ -22,10 +22,11 @@
 # agregar que se pueda procesar mas de un pdf
 #agregar diseño mas atractivo
 # hacer documentacion
-# SE PROCESAN SUELDOS E INHABILIDAD AUNQUE SOLO SE SELECCIONE UNO
+# Se queda guardado los pdf en la carpeta temporal solucionado
+# cuando no puede procesar, dice proceso exitoso
+
 """
 La app de escritorio
-
 al abrir la app se vera el nombre procesador de pdf, abajo estara una seleccion de opciones, para selecionar el tipo de documento
 y debajo de esto estara el boton de seleccionar archivo, ahi se seleccionara el pdf o los pdf que necesite procesar, 
 segun el tipo de archivo que se seleccione se usara funcionaconinhabilidad.py o funcionconsueldos.py para procesar el pdf, 
@@ -38,9 +39,17 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from funcionaconsueldos import separar_sueldos  
 from funcionaconinhabilidad import separar_inhabilidades
+import threading
 
 output_dir = None
 temp_output_dir = "temp_output_pdfs"
+
+def vaciar_carpeta_temporal():
+    if os.path.exists(temp_output_dir):
+        for archivo in os.listdir(temp_output_dir):
+            archivo_path = os.path.join(temp_output_dir, archivo)
+            if os.path.isfile(archivo_path):
+                os.remove(archivo_path)
 
 def seleccionar_archivo():
     archivo = filedialog.askopenfilename(
@@ -64,6 +73,8 @@ def procesar_pdf(archivo):
         return
 
     output_dir = os.path.join(os.getcwd(), temp_output_dir)
+    
+    vaciar_carpeta_temporal()
     
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -121,15 +132,15 @@ def descargar_carpeta():
                 messagebox.showinfo("Éxito", f"La carpeta se ha descargado en: {carpeta_final}")
                 
               #  shutil.rmtree(output_dir)
-               # messagebox.showinfo("Éxito", "La carpeta temporal ha sido eliminada.")
+              #  messagebox.showinfo("Éxito", "La carpeta temporal ha sido eliminada.")
             except Exception as e:
-                messagebox.showerror("Error", f"No se pudo descargar la carpeta: {e}")
+                messagebox.showerror("Error:", f"{e}")
     else:
         messagebox.showerror("Error", "No se ha procesado ningún archivo aún.")
 
 root = tk.Tk()
 root.title("Procesador de PDF")  
-root.geometry("500x300") 
+root.geometry("500x350") 
 
 tipo_documento_var = tk.StringVar(value="Seleccionar tipo")
 etiqueta_tipo_documento = tk.Label(root, text="Seleccionar tipo de documento:")
@@ -162,4 +173,3 @@ boton_descargar = tk.Button(
 boton_descargar.pack(pady=20)
 
 root.mainloop()
-
