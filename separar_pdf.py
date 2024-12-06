@@ -4,10 +4,10 @@
 # 2.1 funciona en diferentes archivos pero por separado, hay que hacerlo en un solo archivo py 
 # 3- empesar app
 # 4 detalles
-# 4.1. opcion de elegir el tipo de archivo, si es sueldos o inhabilidad 
+# 4.1. opcion de elegir el tipo de archivo, si es sueldos o inhabilidad listo
 # 4.2 selector de archivos
 # 4.3 añadir opcion para el nombre, que termine en cer si es inhabilidad o con el digito verificador si es sueldo listo
-# 5 empezar interfaz de usuario
+# 5 empezar interfaz de usuario 
 # 5.1 agregar selector de archivos en interfaz listo
 # 5.2 agregar seleccion de tipo de archivo listo
 #  verificari si el rut tiene puntos, ti tiene puntos se quitan listo
@@ -18,6 +18,11 @@
 #el segundo scrirpt es funcion_cer.py que su logica es para los certificados de inhabilidad
 # el tecer script es funcion_sueldo.py que servira para los sueldos
 # no se pudo procesar el archivo: separar_inhabilidades() missing 1 required positional argument 'output_dir'
+# agregar barra o circulo de carga
+# agregar que se pueda procesar mas de un pdf
+#agregar diseño mas atractivo
+# hacer documentacion
+# SE PROCESAN SUELDOS E INHABILIDAD AUNQUE SOLO SE SELECCIONE UNO
 """
 La app de escritorio
 
@@ -27,15 +32,15 @@ segun el tipo de archivo que se seleccione se usara funcionaconinhabilidad.py o 
 al finalizar el proceso se creara una carpeta con los pdf, esta carpeta se descargara y elegira la ubicacion donde se desea guardar
 si se procesa bien el pdf saldra un mensaje que diga "se proceso correctamente" y en caso de algun error dira"no se pudo procesar el pdf"
 """
-import tkinter as tk
-from tkinter import filedialog, messagebox
 import os
 import shutil
+import tkinter as tk
+from tkinter import filedialog, messagebox
 from funcionaconsueldos import separar_sueldos  
 from funcionaconinhabilidad import separar_inhabilidades
 
-output_dir = None  
-temp_output_dir = "temp_output_pdfs"  # Nombre de la carpeta temporal
+output_dir = None
+temp_output_dir = "temp_output_pdfs"
 
 def seleccionar_archivo():
     archivo = filedialog.askopenfilename(
@@ -57,8 +62,7 @@ def procesar_pdf(archivo):
     if tipo_documento == "Seleccionar tipo":
         messagebox.showerror("Error", "Selecciona el tipo de documento (Sueldos o Inhabilidad)")
         return
-    
-    # Crear una carpeta temporal dentro del proyecto para guardar los PDFs procesados
+
     output_dir = os.path.join(os.getcwd(), temp_output_dir)
     
     if not os.path.exists(output_dir):
@@ -68,7 +72,6 @@ def procesar_pdf(archivo):
         if separar_sueldos: 
             try:
                 separar_sueldos(archivo, output_dir)  
-
                 messagebox.showinfo("Éxito", f"El PDF fue procesado correctamente.")
                 boton_descargar.config(state=tk.NORMAL)
                 etiqueta_archivo.config(text=f"PDF procesado: {archivo}")
@@ -81,7 +84,6 @@ def procesar_pdf(archivo):
         if separar_inhabilidades:
             try:
                 separar_inhabilidades(archivo, output_dir)  
-
                 messagebox.showinfo("Éxito", f"El PDF fue procesado correctamente.")
                 boton_descargar.config(state=tk.NORMAL)  
                 etiqueta_archivo.config(text=f"PDF procesado: {archivo}")
@@ -92,30 +94,34 @@ def procesar_pdf(archivo):
 
 def descargar_carpeta():
     if output_dir:
-        # Abrir ventana para elegir el directorio de destino
-        carpeta_destino = filedialog.askdirectory(title="Seleccionar ubicación para guardar la carpeta con los PDFs")
+        carpeta_destino = filedialog.asksaveasfilename(
+            defaultextension="",
+            filetypes=[("Carpeta", "")],
+            title="Seleccionar ubicación para guardar la carpeta",
+            initialdir=os.getcwd()
+        )
         
         if carpeta_destino:
+            nombre_carpeta = os.path.basename(carpeta_destino)  
+            
+            if nombre_carpeta == "":
+                nombre_carpeta = "ArchivosProcesados"
+            
+            carpeta_final = os.path.join(os.path.dirname(carpeta_destino), nombre_carpeta)
+            
+            if not os.path.exists(carpeta_final):
+                os.makedirs(carpeta_final)
+            
             try:
-                # Crear una nueva carpeta dentro de la carpeta seleccionada
-                nombre_carpeta = "procesados"  # Puedes personalizar el nombre de la carpeta
-                destino_completo = os.path.join(carpeta_destino, nombre_carpeta)
-                
-                # Crear la carpeta si no existe
-                if not os.path.exists(destino_completo):
-                    os.makedirs(destino_completo)
-                
-                # Copiar los archivos procesados a la nueva carpeta
                 for archivo in os.listdir(output_dir):
                     archivo_origen = os.path.join(output_dir, archivo)
-                    archivo_destino = os.path.join(destino_completo, archivo)
+                    archivo_destino = os.path.join(carpeta_final, archivo)
                     shutil.copy(archivo_origen, archivo_destino)
 
-                messagebox.showinfo("Éxito", f"La carpeta se ha descargado en: {destino_completo}")
+                messagebox.showinfo("Éxito", f"La carpeta se ha descargado en: {carpeta_final}")
                 
-                # Borrar la carpeta temporal después de la descarga
-                shutil.rmtree(output_dir)
-                messagebox.showinfo("Éxito", "La carpeta temporal ha sido eliminada.")
+              #  shutil.rmtree(output_dir)
+               # messagebox.showinfo("Éxito", "La carpeta temporal ha sido eliminada.")
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo descargar la carpeta: {e}")
     else:
@@ -156,3 +162,4 @@ boton_descargar = tk.Button(
 boton_descargar.pack(pady=20)
 
 root.mainloop()
+

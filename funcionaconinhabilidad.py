@@ -23,7 +23,8 @@ def buscar_rut(texto):
     match = re.search(r'\b(RUN|RUT)[\s:]*([\d]{7,8})-?([0-9Kk])\b', texto)
     if match:
         rut_base = f"{match.group(2)}-{match.group(3)}"
-        return rut_base 
+        rut_modificado = f"{match.group(2)}-cer"
+        return rut_modificado  
     return None
 
 def limpiar_texto(texto):
@@ -34,11 +35,13 @@ def separar_inhabilidades(pdf_path, output_dir):
     documento = fitz.open(pdf_path)
     nombre_archivo = os.path.splitext(os.path.basename(pdf_path))[0]
     
+    os.makedirs(output_dir, exist_ok=True)
+
     for i in range(len(documento)):
         pagina = documento[i]
         
         texto = pagina.get_text("text")
-        texto_limpio = limpiar_texto(texto) 
+        texto_limpio = limpiar_texto(texto)
 
         if texto_limpio:
             print(f"Texto extraído de la página {i+1}: {texto_limpio}") 
@@ -47,14 +50,14 @@ def separar_inhabilidades(pdf_path, output_dir):
                 print(f"RUT encontrado en la página {i+1} desde texto: {rut}")
                 nuevo_pdf = fitz.open()
                 nuevo_pdf.insert_pdf(documento, from_page=i, to_page=i)
-                output_pdf_path = os.path.join(output_dir, f"{rut}.pdf")  
+                output_pdf_path = os.path.join(output_dir, f"{rut}.pdf")
                 nuevo_pdf.save(output_pdf_path)
                 print(f"Se guardó el PDF con RUT {rut} en: {output_pdf_path}")
                 continue  
 
         print(f"No se encontró RUT en la página {i+1} desde texto, usando OCR...")
 
-        pix = pagina.get_pixmap(matrix=fitz.Matrix(2, 2))  
+        pix = pagina.get_pixmap(matrix=fitz.Matrix(2, 2)) 
         imagen = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
 
         texto_ocr = extraer_texto_ocr(imagen)
@@ -66,7 +69,7 @@ def separar_inhabilidades(pdf_path, output_dir):
             print(f"RUT encontrado con OCR en la página {i+1}: {rut}")
             nuevo_pdf = fitz.open()
             nuevo_pdf.insert_pdf(documento, from_page=i, to_page=i)
-            output_pdf_path = os.path.join(output_dir, f"{rut}.pdf")  
+            output_pdf_path = os.path.join(output_dir, f"{rut}.pdf")
             nuevo_pdf.save(output_pdf_path)
             print(f"Se guardó el PDF con RUT {rut} en: {output_pdf_path}")
         else:

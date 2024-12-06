@@ -14,15 +14,13 @@ def extraer_texto_ocr(imagen):
 
 def buscar_rut(texto):
     print(f"Texto para buscar RUT: {texto}")
-    # Asegúrate de que la expresión regular cubra todos los casos posibles
     match = re.search(r'(?<=Rut[:\s])(\d{7,8}-[Kk0-9])', texto)
     if match:
         return match.group(1)
     return None
 
 def limpiar_texto(texto):
-    # Elimina caracteres innecesarios, pero no toques demasiado el texto
-    texto_limpio = " ".join(texto.split())  # Solo reemplaza saltos de línea y espacios extra
+    texto_limpio = " ".join(texto.split())
     return texto_limpio
 
 def separar_sueldos(pdf_path, output_dir):
@@ -33,7 +31,7 @@ def separar_sueldos(pdf_path, output_dir):
         pagina = documento[i]
         
         texto = pagina.get_text("text")
-        texto_limpio = limpiar_texto(texto)  # Solo limpia el texto, no lo normalices tanto
+        texto_limpio = limpiar_texto(texto)  
 
         if texto_limpio:
             print(f"Texto extraído de la página {i+1}: {texto_limpio}") 
@@ -49,7 +47,7 @@ def separar_sueldos(pdf_path, output_dir):
 
         print(f"No se encontró RUT en la página {i+1} desde texto, usando OCR...")
 
-        pix = pagina.get_pixmap(matrix=fitz.Matrix(2, 2))  # Convierte la página en imagen
+        pix = pagina.get_pixmap(matrix=fitz.Matrix(2, 2)) 
         imagen = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
 
         texto_ocr = extraer_texto_ocr(imagen)
