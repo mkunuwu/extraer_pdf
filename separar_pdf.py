@@ -23,7 +23,7 @@
 #agregar diseño mas atractivo
 # hacer documentacion
 # Se queda guardado los pdf en la carpeta temporal solucionado
-# cuando no puede procesar, dice proceso exitoso
+# cuando no puede procesar, dice proceso exitoso SOLUCIONADO 
 
 """
 La app de escritorio
@@ -33,6 +33,7 @@ segun el tipo de archivo que se seleccione se usara funcionaconinhabilidad.py o 
 al finalizar el proceso se creara una carpeta con los pdf, esta carpeta se descargara y elegira la ubicacion donde se desea guardar
 si se procesa bien el pdf saldra un mensaje que diga "se proceso correctamente" y en caso de algun error dira"no se pudo procesar el pdf"
 """
+
 import os
 import shutil
 import tkinter as tk
@@ -52,18 +53,21 @@ def vaciar_carpeta_temporal():
                 os.remove(archivo_path)
 
 def seleccionar_archivo():
-    archivo = filedialog.askopenfilename(
-        title="Seleccionar archivo PDF", 
+    archivos = filedialog.askopenfilenames(
+        title="Seleccionar archivos PDF", 
         filetypes=[("Archivos PDF", "*.pdf")]
     )
     
-    if archivo:  
-        etiqueta_archivo.config(text=f"Archivo seleccionado: {archivo}")
-        procesar_pdf(archivo)  
+    archivos = list(archivos)  
+    
+    if archivos:  
+        etiqueta_archivo.config(text=f"Archivos seleccionados: {', '.join(archivos)}")
+        procesar_archivos(archivos)  
     else:
-        etiqueta_archivo.config(text="No se seleccionó ningún archivo")
+        etiqueta_archivo.config(text="No se seleccionaron archivos")
 
-def procesar_pdf(archivo):
+
+def procesar_archivos(archivos):
     global output_dir 
     
     tipo_documento = tipo_documento_var.get()
@@ -79,29 +83,30 @@ def procesar_pdf(archivo):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    if tipo_documento == "Sueldos":
-        if separar_sueldos: 
+    def procesar_siguiente_archivo():
+        if archivos:
+            archivo = archivos.pop(0)
             try:
-                separar_sueldos(archivo, output_dir)  
-                messagebox.showinfo("Éxito", f"El PDF fue procesado correctamente.")
-                boton_descargar.config(state=tk.NORMAL)
-                etiqueta_archivo.config(text=f"PDF procesado: {archivo}")
+                if tipo_documento == "Sueldos":
+                    separar_sueldos(archivo, output_dir)  
+                
+                elif tipo_documento == "Inhabilidad":
+                    separar_inhabilidades(archivo, output_dir)  
+
+                if not os.listdir(output_dir):
+                    messagebox.showerror("Error", "No se pudieron procesar los PDFs. Asegúrese de que el archivo es válido para el tipo seleccionado.")
+                else:
+                    messagebox.showinfo("Éxito", f"El PDF {archivo} fue procesado correctamente.")
+                    boton_descargar.config(state=tk.NORMAL)  
+                    etiqueta_archivo.config(text=f"PDF procesado: {archivo}")
+
+                procesar_siguiente_archivo()
             except Exception as e:
-                messagebox.showerror("Error", f"No se pudo procesar el archivo: {e}")
+                messagebox.showerror("Error", f"No se pudo procesar el archivo {archivo}: {e}")
         else:
-            messagebox.showerror("Error", "No se pudo importar la función para procesar sueldos.")
-    
-    elif tipo_documento == "Inhabilidad":
-        if separar_inhabilidades:
-            try:
-                separar_inhabilidades(archivo, output_dir)  
-                messagebox.showinfo("Éxito", f"El PDF fue procesado correctamente.")
-                boton_descargar.config(state=tk.NORMAL)  
-                etiqueta_archivo.config(text=f"PDF procesado: {archivo}")
-            except Exception as e:
-                messagebox.showerror("Error", f"No se pudo procesar el archivo: {e}")
-        else:
-            messagebox.showerror("Error", "No se pudo importar la función para procesar inhabilidades.")
+            messagebox.showinfo("Éxito", "Todos los archivos han sido procesados.")
+
+    procesar_siguiente_archivo()
 
 def descargar_carpeta():
     if output_dir:
@@ -131,7 +136,7 @@ def descargar_carpeta():
 
                 messagebox.showinfo("Éxito", f"La carpeta se ha descargado en: {carpeta_final}")
                 
-              #  shutil.rmtree(output_dir)
+               # shutil.rmtree(output_dir)
               #  messagebox.showinfo("Éxito", "La carpeta temporal ha sido eliminada.")
             except Exception as e:
                 messagebox.showerror("Error:", f"{e}")
@@ -146,7 +151,7 @@ tipo_documento_var = tk.StringVar(value="Seleccionar tipo")
 etiqueta_tipo_documento = tk.Label(root, text="Seleccionar tipo de documento:")
 etiqueta_tipo_documento.pack(pady=5)
 
-opciones_tipo_documento = ["Seleccionar tipo", "Sueldos", "Inhabilidad"]
+opciones_tipo_documento = ["Sueldos", "Inhabilidad"]
 menu_tipo_documento = tk.OptionMenu(root, tipo_documento_var, *opciones_tipo_documento)
 menu_tipo_documento.pack(pady=5)
 
