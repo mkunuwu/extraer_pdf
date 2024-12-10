@@ -38,6 +38,7 @@ import os
 import shutil
 import tkinter as tk
 from tkinter import filedialog, messagebox
+from tkinter import ttk
 from funcionaconsueldos import separar_sueldos  
 from funcionaconinhabilidad import separar_inhabilidades
 import threading
@@ -58,14 +59,13 @@ def seleccionar_archivo():
         filetypes=[("Archivos PDF", "*.pdf")]
     )
     
-    archivos = list(archivos)  
+    archivos = list(archivos)
     
     if archivos:  
         etiqueta_archivo.config(text=f"Archivos seleccionados: {', '.join(archivos)}")
         procesar_archivos(archivos)  
     else:
         etiqueta_archivo.config(text="No se seleccionaron archivos")
-
 
 def procesar_archivos(archivos):
     global output_dir 
@@ -103,8 +103,8 @@ def procesar_archivos(archivos):
                 procesar_siguiente_archivo()
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo procesar el archivo {archivo}: {e}")
-        else:
-            messagebox.showinfo("Éxito", "Todos los archivos han sido procesados.")
+            
+
 
     procesar_siguiente_archivo()
 
@@ -135,46 +135,76 @@ def descargar_carpeta():
                     shutil.copy(archivo_origen, archivo_destino)
 
                 messagebox.showinfo("Éxito", f"La carpeta se ha descargado en: {carpeta_final}")
-                
-               # shutil.rmtree(output_dir)
-              #  messagebox.showinfo("Éxito", "La carpeta temporal ha sido eliminada.")
             except Exception as e:
                 messagebox.showerror("Error:", f"{e}")
     else:
         messagebox.showerror("Error", "No se ha procesado ningún archivo aún.")
 
+
+def procesar_archivos_en_hilo(archivos):
+    archivos = list(archivos)
+    hilo = threading.Thread(target=procesar_archivos, args=(archivos,))
+    hilo.start()
+
+
 root = tk.Tk()
 root.title("Procesador de PDF")  
-root.geometry("500x350") 
+root.geometry("500x400")
+root.config(bg="#f5f5f5")
+
+titulo_label = tk.Label(root, text="Procesador de PDF", font=("Helvetica", 18, "bold"), bg="#f5f5f5", fg="#2d3e50")
+titulo_label.pack(pady=20)
 
 tipo_documento_var = tk.StringVar(value="Seleccionar tipo")
-etiqueta_tipo_documento = tk.Label(root, text="Seleccionar tipo de documento:")
+etiqueta_tipo_documento = tk.Label(root, text="Seleccionar tipo de documento:", font=("Arial", 12), bg="#f5f5f5", fg="#333333")
 etiqueta_tipo_documento.pack(pady=5)
 
 opciones_tipo_documento = ["Sueldos", "Inhabilidad"]
-menu_tipo_documento = tk.OptionMenu(root, tipo_documento_var, *opciones_tipo_documento)
-menu_tipo_documento.pack(pady=5)
+menu_tipo_documento = ttk.OptionMenu(root, tipo_documento_var, *opciones_tipo_documento)
+menu_tipo_documento.pack(pady=10)
 
-boton_seleccionar = tk.Button(
+boton_seleccionar = ttk.Button(
     root, 
     text="Seleccionar archivo PDF", 
-    command=seleccionar_archivo, 
+    command=lambda: procesar_archivos_en_hilo(filedialog.askopenfilenames(
+        title="Seleccionar archivos PDF", 
+        filetypes=[("Archivos PDF", "*.pdf")]
+    )), 
     width=30, 
-    height=2
+    style="GreenButton.TButton"
 )
 boton_seleccionar.pack(pady=20)
 
-etiqueta_archivo = tk.Label(root, text="No se ha seleccionado ningún archivo", wraplength=350)
+etiqueta_archivo = tk.Label(root, text="No se ha seleccionado ningún archivo", font=("Arial", 10), bg="#f5f5f5", wraplength=350, fg="#555")
 etiqueta_archivo.pack(pady=10)
 
-boton_descargar = tk.Button(
+boton_descargar = ttk.Button(
     root,
     text="Descargar carpeta",
     command=descargar_carpeta,
     width=30,
-    height=2,
-    state=tk.DISABLED  
+    state=tk.DISABLED,
+    style="BlueButton.TButton"
 )
 boton_descargar.pack(pady=20)
+
+style = ttk.Style()
+style.configure("TButton",
+                font=("Arial", 12),
+                padding=10)
+
+style.configure("GreenButton.TButton",
+                background="#4CAF50",
+                foreground="black",
+                font=("Arial", 12),
+                padding=10)
+style.map("GreenButton.TButton", background=[("active", "#45a049")])
+
+style.configure("BlueButton.TButton",
+                background="#2196F3",
+                foreground="black",
+                font=("Arial", 12),
+                padding=10)
+style.map("BlueButton.TButton", background=[("active", "#1976D2")])
 
 root.mainloop()
