@@ -24,6 +24,8 @@
 # hacer documentacion
 # Se queda guardado los pdf en la carpeta temporal solucionado
 # cuando no puede procesar, dice proceso exitoso SOLUCIONADO 
+# selector de tipo solucionado
+#mensaje procesando listo
 
 """
 La app de escritorio
@@ -83,6 +85,8 @@ def procesar_archivos(archivos):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
+    etiqueta_estado.config(text="Procesando archivos...")
+
     def procesar_siguiente_archivo():
         if archivos:
             archivo = archivos.pop(0)
@@ -103,9 +107,11 @@ def procesar_archivos(archivos):
                 procesar_siguiente_archivo()
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo procesar el archivo {archivo}: {e}")
+
+        else:
+            etiqueta_estado.config(text="Procesamiento completado.")
+            messagebox.showinfo("Finalizado", "Todos los archivos han sido procesados.")
             
-
-
     procesar_siguiente_archivo()
 
 def descargar_carpeta():
@@ -147,6 +153,14 @@ def procesar_archivos_en_hilo(archivos):
     hilo.start()
 
 
+def actualizar_opciones_menu(*args):
+    opciones_tipo_documento = ["Sueldos", "Inhabilidad"]
+    menu_tipo_documento['menu'].delete(0, 'end')
+    
+    for opcion in opciones_tipo_documento:
+        menu_tipo_documento['menu'].add_command(label=opcion, command=tk._setit(tipo_documento_var, opcion))
+
+
 root = tk.Tk()
 root.title("Procesador de PDF")  
 root.geometry("500x400")
@@ -163,6 +177,8 @@ opciones_tipo_documento = ["Sueldos", "Inhabilidad"]
 menu_tipo_documento = ttk.OptionMenu(root, tipo_documento_var, *opciones_tipo_documento)
 menu_tipo_documento.pack(pady=10)
 
+tipo_documento_var.trace("w", actualizar_opciones_menu)
+
 boton_seleccionar = ttk.Button(
     root, 
     text="Seleccionar archivo PDF", 
@@ -177,6 +193,9 @@ boton_seleccionar.pack(pady=20)
 
 etiqueta_archivo = tk.Label(root, text="No se ha seleccionado ningún archivo", font=("Arial", 10), bg="#f5f5f5", wraplength=350, fg="#555")
 etiqueta_archivo.pack(pady=10)
+
+etiqueta_estado = tk.Label(root, text="No hay procesamiento en curso", font=("Arial", 10), bg="#f5f5f5", fg="#555")
+etiqueta_estado.pack(pady=10)
 
 boton_descargar = ttk.Button(
     root,
