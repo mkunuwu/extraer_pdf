@@ -35,8 +35,8 @@ segun el tipo de archivo que se seleccione se usara funcionaconinhabilidad.py o 
 al finalizar el proceso se creara una carpeta con los pdf, esta carpeta se descargara y elegira la ubicacion donde se desea guardar
 si se procesa bien el pdf saldra un mensaje que diga "se proceso correctamente" y en caso de algun error dira"no se pudo procesar el pdf"
 """
-#si no puede procesar un archivo, igual se puede descargar una carpeta vacia
-#mientras procesa hay que desabilitar boton de seleccionar tipo y de seleccionar archivo
+#si no puede procesar un archivo, igual se puede descargar una carpeta vacia SOLUCIONADO
+#mientras procesa hay que desabilitar boton de seleccionar tipo y de seleccionar archivo SOLUCIONADO
 
 import os
 import shutil
@@ -79,9 +79,11 @@ def procesar_archivos(archivos):
     if tipo_documento == "Seleccionar tipo":
         messagebox.showerror("Error", "Selecciona el tipo de documento (Sueldos o Inhabilidad)")
         return
-    
+
+
     boton_seleccionar.config(state=tk.DISABLED)
     menu_tipo_documento.config(state=tk.DISABLED)
+    boton_descargar.config(state=tk.DISABLED)
     
     output_dir = os.path.join(os.getcwd(), temp_output_dir)
     
@@ -104,19 +106,29 @@ def procesar_archivos(archivos):
 
                 if not os.listdir(output_dir):
                     messagebox.showerror("Error", "No se pudieron procesar los PDFs. Asegúrese de que el archivo es válido para el tipo seleccionado.")
-                else:
-                    messagebox.showinfo("Éxito", f"El PDF {archivo} fue procesado correctamente.")
-                    boton_descargar.config(state=tk.NORMAL)  
-                    etiqueta_archivo.config(text=f"PDF procesado: {archivo}")
+                    boton_seleccionar.config(state=tk.NORMAL)
+                    menu_tipo_documento.config(state=tk.NORMAL)
+                    return
+                
+                messagebox.showinfo("Éxito", f"El PDF {archivo} fue procesado correctamente.")
+                etiqueta_archivo.config(text=f"PDF procesado: {archivo}")
 
                 procesar_siguiente_archivo()
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo procesar el archivo {archivo}: {e}")
+                boton_seleccionar.config(state=tk.NORMAL)
+                menu_tipo_documento.config(state=tk.NORMAL)
+                return
 
         else:
             etiqueta_estado.config(text="Procesamiento completado.")
             boton_seleccionar.config(state=tk.NORMAL)
             menu_tipo_documento.config(state=tk.NORMAL)
+
+            if os.listdir(output_dir):
+                boton_descargar.config(state=tk.NORMAL)
+            else:
+                boton_descargar.config(state=tk.DISABLED)
 
             
     procesar_siguiente_archivo()
@@ -166,7 +178,6 @@ def actualizar_opciones_menu(*args):
     
     for opcion in opciones_tipo_documento:
         menu_tipo_documento['menu'].add_command(label=opcion, command=tk._setit(tipo_documento_var, opcion))
-
 
 
 root = tk.Tk()
