@@ -35,6 +35,8 @@ segun el tipo de archivo que se seleccione se usara funcionaconinhabilidad.py o 
 al finalizar el proceso se creara una carpeta con los pdf, esta carpeta se descargara y elegira la ubicacion donde se desea guardar
 si se procesa bien el pdf saldra un mensaje que diga "se proceso correctamente" y en caso de algun error dira"no se pudo procesar el pdf"
 """
+#si no puede procesar un archivo, igual se puede descargar una carpeta vacia
+#mientras procesa hay que desabilitar boton de seleccionar tipo y de seleccionar archivo
 
 import os
 import shutil
@@ -77,7 +79,10 @@ def procesar_archivos(archivos):
     if tipo_documento == "Seleccionar tipo":
         messagebox.showerror("Error", "Selecciona el tipo de documento (Sueldos o Inhabilidad)")
         return
-
+    
+    boton_seleccionar.config(state=tk.DISABLED)
+    menu_tipo_documento.config(state=tk.DISABLED)
+    
     output_dir = os.path.join(os.getcwd(), temp_output_dir)
     
     vaciar_carpeta_temporal()
@@ -110,7 +115,9 @@ def procesar_archivos(archivos):
 
         else:
             etiqueta_estado.config(text="Procesamiento completado.")
-            messagebox.showinfo("Finalizado", "Todos los archivos han sido procesados.")
+            boton_seleccionar.config(state=tk.NORMAL)
+            menu_tipo_documento.config(state=tk.NORMAL)
+
             
     procesar_siguiente_archivo()
 
@@ -161,9 +168,10 @@ def actualizar_opciones_menu(*args):
         menu_tipo_documento['menu'].add_command(label=opcion, command=tk._setit(tipo_documento_var, opcion))
 
 
+
 root = tk.Tk()
 root.title("Procesador de PDF")  
-root.geometry("500x400")
+root.geometry("500x450")
 root.config(bg="#f5f5f5")
 
 titulo_label = tk.Label(root, text="Procesador de PDF", font=("Helvetica", 18, "bold"), bg="#f5f5f5", fg="#2d3e50")
