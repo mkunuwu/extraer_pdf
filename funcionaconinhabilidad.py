@@ -22,11 +22,7 @@ def extraer_texto_ocr(imagen):
     texto_ocr = pytesseract.image_to_string(imagen)
     return texto_ocr
 
-def normalizar_texto(texto):
-    texto_normalizado = texto.replace("Cién", "Ción")  
-    texto_normalizado = re.sub(r'\s+', ' ', texto_normalizado) 
-    texto_normalizado = re.sub(r'[^\w\s-]', '', texto_normalizado)  
-    return texto_normalizado.strip()  
+
 
 def buscar_rut(texto):
     match = re.search(r'\b(RUN|RUT)[\s:]*([\d]{7,8})-?([0-9Kk])\b', texto)
@@ -37,8 +33,11 @@ def buscar_rut(texto):
     return None
 
 def limpiar_texto(texto):
-    texto_limpio = normalizar_texto(texto)
+    texto_limpio = " ".join(texto.split())
+    texto_limpio = re.sub(r'\s+', ' ', texto_limpio) 
+    texto_limpio = re.sub(r'[^\w\s-]', '', texto_limpio) 
     return texto_limpio
+
 
 def separar_inhabilidades(pdf_path, output_dir):
     documento = fitz.open(pdf_path)
